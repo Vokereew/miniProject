@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Дневник смен водителя</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Дневной учёт</p>
+        <h1>Дневник смен водителя</h1>
+      </div>
+    </header>
+
+    <div class="card topbar">
+      <label class="date-field">
+        <span>Дата</span>
+        <input id="date" type="date">
+      </label>
+      <button class="button" id="open-modal" type="button">+ Добавить поездку</button>
+    </div>
+
+    <section id="summary" class="card summary-card"></section>
+
+    <section class="card table-card">
+      <div class="section-header">
+        <h2>Поездки</h2>
+      </div>
+      <div class="table-wrap">
+        <div id="trips" class="empty-state">Загрузка...</div>
+      </div>
+    </section>
+  </div>
+
+  <div id="trip-modal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="trip-modal-title">
+      <div class="modal-header">
+        <h2 id="trip-modal-title">Новая поездка</h2>
+        <button class="close-btn" type="button" id="close-modal" aria-label="Закрыть">×</button>
+      </div>
+      <form id="trip-form">
+        <div class="form-grid">
+          <div class="date-row" style="grid-column:1 / -1">
+            <div class="field-wrap">
+              <label>Начало <input name="start" type="datetime-local" required></label>
+            </div>
+            <div class="field-wrap">
+              <label>Окончание <input name="end" type="datetime-local" required></label>
+            </div>
+          </div>
+          <div class="field-wrap">
+            <label>Сумма <input name="amount" type="number" min="1" step="1" required></label>
+          </div>
+          <div class="field-wrap">
+            <label>Оплата <select name="payment"><option value="cash">Наличные</option><option value="card">Карта</option></select></label>
+          </div>
+          <div class="field-wrap">
+            <label>Комиссия <input name="commission" type="number" min="0" step="1" required></label>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <div id="form-message" class="muted"></div>
+          <div class="action-buttons">
+            <button class="button secondary" type="button" id="cancel-modal">Отмена</button>
+            <button class="button" type="submit">Сохранить</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,7 +1,6 @@
 [
   {
     "id": "t1",
-    "trace_id": "trip-1791364229040-0262c7",
     "start": "2026-10-07T09:10:00Z",
     "end": "2026-10-07T09:12:00Z",
     "amount": 11111111,
@@ -10,11 +9,19 @@
   },
   {
     "id": "t2",
-    "trace_id": "trip-1791365018667-e91fcb",
     "start": "2026-10-07T09:24:00Z",
     "end": "2026-10-07T09:25:00Z",
     "amount": 221,
     "payment": "cash",
     "commission": 1
+  },
+  {
+    "id": "t3",
+    "idempotency_key": "trip-1791366826826-a66aab",
+    "start": "2026-10-07T09:53:00Z",
+    "end": "2026-10-07T09:55:00Z",
+    "amount": 111111,
+    "payment": "cash",
+    "commission": 22
   }
 ]

@@ -6,14 +6,14 @@ const modal = document.getElementById('trip-modal');
 const openModalBtn = document.getElementById('open-modal');
 const closeModalBtn = document.getElementById('close-modal');
 const cancelModalBtn = document.getElementById('cancel-modal');
-let currentTraceId = '';
+let currentIdempotencyKey = '';
 
-function makeTraceId() {
+function makeIdempotencyKey() {
   return 'trip-' + Date.now() + '-' + Math.random().toString(16).slice(2, 8);
 }
 
 async function openModal() {
-  currentTraceId = makeTraceId();
+  currentIdempotencyKey = makeIdempotencyKey();
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
   setTimeout(() => {
@@ -27,7 +27,7 @@ function closeModal() {
   msg.className = 'muted';
   msg.textContent = '';
   form.reset();
-  currentTraceId = '';
+  currentIdempotencyKey = '';
 }
 
 openModalBtn.addEventListener('click', openModal);
@@ -53,7 +53,7 @@ form.addEventListener('submit', async e => {
   }
 
   const payload = {
-    trace_id: currentTraceId || makeTraceId(),
+    idempotency_key: currentIdempotencyKey || makeIdempotencyKey(),
     start: new Date(startValue).toISOString(),
     end: new Date(endValue).toISOString(),
     amount: Number(formData.get('amount')),

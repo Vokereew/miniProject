@@ -14,13 +14,13 @@ import (
 )
 
 type Trip struct {
-	ID         string    `json:"id,omitempty"`
-	TraceID    string    `json:"trace_id,omitempty"`
-	Start      time.Time `json:"start"`
-	End        time.Time `json:"end"`
-	Amount     int64     `json:"amount"`
-	Payment    string    `json:"payment"`
-	Commission int64     `json:"commission"`
+	ID             string    `json:"id,omitempty"`
+	IdempotencyKey string    `json:"idempotency_key,omitempty"`
+	Start          time.Time `json:"start"`
+	End            time.Time `json:"end"`
+	Amount         int64     `json:"amount"`
+	Payment        string    `json:"payment"`
+	Commission     int64     `json:"commission"`
 }
 
 type Summary struct {
@@ -146,10 +146,10 @@ func normalizeText(value string) string {
 func (s *Store) add(t Trip) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	t.TraceID = strings.TrimSpace(t.TraceID)
-	if traceID := normalizeText(t.TraceID); traceID != "" {
+	t.IdempotencyKey = strings.TrimSpace(t.IdempotencyKey)
+	if key := normalizeText(t.IdempotencyKey); key != "" {
 		for _, existing := range s.trips {
-			if normalizeText(existing.TraceID) == traceID {
+			if normalizeText(existing.IdempotencyKey) == key {
 				t.ID = existing.ID
 				return false, nil
 			}
@@ -285,10 +285,10 @@ func (s *Server) addTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !added {
-		writeJSON(w, http.StatusOK, map[string]any{"created": false, "duplicate": true, "id": t.ID, "trace_id": t.TraceID})
+		writeJSON(w, http.StatusOK, map[string]any{"created": false, "duplicate": true, "id": t.ID, "idempotency_key": t.IdempotencyKey})
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]any{"created": true, "duplicate": false, "id": t.ID, "trace_id": t.TraceID})
+	writeJSON(w, http.StatusCreated, map[string]any{"created": true, "duplicate": false, "id": t.ID, "idempotency_key": t.IdempotencyKey})
 }
 
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {

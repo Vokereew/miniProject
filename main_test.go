@@ -82,9 +82,9 @@ func TestStoreRejectsDuplicateTrip(t *testing.T) {
 func TestNewStoreRemovesDuplicateTrips(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "trips.json")
 	payload := `[
-		{"id":"t1","trace_id":"dup-1","start":"2026-10-07T09:10:00Z","end":"2026-10-07T09:12:00Z","amount":1500,"payment":"cash","commission":150},
-		{"id":"t2","trace_id":"dup-2","start":"2026-10-07T09:10:00Z","end":"2026-10-07T09:12:00Z","amount":1500,"payment":"cash","commission":150},
-		{"id":"t3","trace_id":"uniq-1","start":"2026-10-07T10:00:00Z","end":"2026-10-07T10:20:00Z","amount":2000,"payment":"card","commission":250}
+		{"id":"t1","idempotency_key":"dup-1","start":"2026-10-07T09:10:00Z","end":"2026-10-07T09:12:00Z","amount":1500,"payment":"cash","commission":150},
+		{"id":"t2","idempotency_key":"dup-2","start":"2026-10-07T09:10:00Z","end":"2026-10-07T09:12:00Z","amount":1500,"payment":"cash","commission":150},
+		{"id":"t3","idempotency_key":"uniq-1","start":"2026-10-07T10:00:00Z","end":"2026-10-07T10:20:00Z","amount":2000,"payment":"card","commission":250}
 	]`
 	if err := os.WriteFile(path, []byte(payload), 0644); err != nil {
 		t.Fatalf("WriteFile() error = %v", err)
@@ -154,7 +154,7 @@ func TestAddTripAPI(t *testing.T) {
 	}
 }
 
-func TestTripTraceIDIsIdempotent(t *testing.T) {
+func TestTripIdempotencyKeyIsIdempotent(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "trips.json")
 	store, err := NewStore(path)
 	if err != nil {
@@ -163,12 +163,12 @@ func TestTripTraceIDIsIdempotent(t *testing.T) {
 	server := NewServer(store)
 
 	payload := map[string]any{
-		"trace_id":   "req-abc-1",
-		"start":      "2026-10-01T08:10:00+05:00",
-		"end":        "2026-10-01T08:32:00+05:00",
-		"amount":     2400,
-		"payment":    "card",
-		"commission": 360,
+		"idempotency_key": "req-abc-1",
+		"start":           "2026-10-01T08:10:00+05:00",
+		"end":             "2026-10-01T08:32:00+05:00",
+		"amount":          2400,
+		"payment":         "card",
+		"commission":      360,
 	}
 	body, _ := json.Marshal(payload)
 
@@ -199,7 +199,7 @@ func TestTripTraceIDIsIdempotent(t *testing.T) {
 	}
 }
 
-func TestSameTripWithDifferentTraceIDIsDuplicate(t *testing.T) {
+func TestSameTripWithDifferentIdempotencyKeyIsDuplicate(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "trips.json")
 	store, err := NewStore(path)
 	if err != nil {
@@ -208,12 +208,12 @@ func TestSameTripWithDifferentTraceIDIsDuplicate(t *testing.T) {
 	server := NewServer(store)
 
 	first := map[string]any{
-		"trace_id":   "trace-1",
-		"start":      "2026-10-01T08:10:00+05:00",
-		"end":        "2026-10-01T08:32:00+05:00",
-		"amount":     2400,
-		"payment":    "card",
-		"commission": 360,
+		"idempotency_key": "trace-1",
+		"start":           "2026-10-01T08:10:00+05:00",
+		"end":             "2026-10-01T08:32:00+05:00",
+		"amount":          2400,
+		"payment":         "card",
+		"commission":      360,
 	}
 	body, _ := json.Marshal(first)
 	req := httptest.NewRequest(http.MethodPost, "/api/trips", bytes.NewReader(body))
@@ -225,12 +225,12 @@ func TestSameTripWithDifferentTraceIDIsDuplicate(t *testing.T) {
 	}
 
 	second := map[string]any{
-		"trace_id":   "trace-2",
-		"start":      "2026-10-01T08:10:00+05:00",
-		"end":        "2026-10-01T08:32:00+05:00",
-		"amount":     2400,
-		"payment":    "card",
-		"commission": 360,
+		"idempotency_key": "trace-2",
+		"start":           "2026-10-01T08:10:00+05:00",
+		"end":             "2026-10-01T08:32:00+05:00",
+		"amount":          2400,
+		"payment":         "card",
+		"commission":      360,
 	}
 	body, _ = json.Marshal(second)
 	req = httptest.NewRequest(http.MethodPost, "/api/trips", bytes.NewReader(body))
@@ -245,7 +245,7 @@ func TestSameTripWithDifferentTraceIDIsDuplicate(t *testing.T) {
 	}
 }
 
-func TestTraceIDIsIdempotentWithFormattingDifferences(t *testing.T) {
+func TestIdempotencyKeyIsIdempotentWithFormattingDifferences(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "trips.json")
 	store, err := NewStore(path)
 	if err != nil {
@@ -254,12 +254,12 @@ func TestTraceIDIsIdempotentWithFormattingDifferences(t *testing.T) {
 	server := NewServer(store)
 
 	first := map[string]any{
-		"trace_id":   " Req-AbC-42 ",
-		"start":      "2026-10-01T08:10:00+05:00",
-		"end":        "2026-10-01T08:32:00+05:00",
-		"amount":     2400,
-		"payment":    "card",
-		"commission": 360,
+		"idempotency_key": " Req-AbC-42 ",
+		"start":           "2026-10-01T08:10:00+05:00",
+		"end":             "2026-10-01T08:32:00+05:00",
+		"amount":          2400,
+		"payment":         "card",
+		"commission":      360,
 	}
 	body, _ := json.Marshal(first)
 	req := httptest.NewRequest(http.MethodPost, "/api/trips", bytes.NewReader(body))
@@ -271,13 +271,13 @@ func TestTraceIDIsIdempotentWithFormattingDifferences(t *testing.T) {
 	}
 
 	second := map[string]any{
-		"trace_id":   "req-abc-42",
-		"id":         "t999",
-		"start":      "2026-10-01T09:00:00+05:00",
-		"end":        "2026-10-01T09:20:00+05:00",
-		"amount":     1800,
-		"payment":    "cash",
-		"commission": 180,
+		"idempotency_key": "req-abc-42",
+		"id":              "t999",
+		"start":           "2026-10-01T09:00:00+05:00",
+		"end":             "2026-10-01T09:20:00+05:00",
+		"amount":          1800,
+		"payment":         "cash",
+		"commission":      180,
 	}
 	body, _ = json.Marshal(second)
 	req = httptest.NewRequest(http.MethodPost, "/api/trips", bytes.NewReader(body))
@@ -290,8 +290,8 @@ func TestTraceIDIsIdempotentWithFormattingDifferences(t *testing.T) {
 	if len(store.trips) != 1 {
 		t.Fatalf("trip count after formatted duplicate trace request = %d, want 1", len(store.trips))
 	}
-	if store.trips[0].TraceID != "Req-AbC-42" {
-		t.Fatalf("stored trace_id = %q, want %q", store.trips[0].TraceID, "Req-AbC-42")
+	if store.trips[0].IdempotencyKey != "Req-AbC-42" {
+		t.Fatalf("stored idempotency_key = %q, want %q", store.trips[0].IdempotencyKey, "Req-AbC-42")
 	}
 }
 
